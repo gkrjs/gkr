@@ -1,0 +1,41 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "target": "es2020",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "declaration": true,
+        "removeComments": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "alwaysStrict": true,
+        "sourceMap": true,
+        "incremental": true,
+        "forceConsistentCasingInFileNames": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "noUnusedLocals": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "allowSyntheticDefaultImports": true,
+        "pretty": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "noImplicitAny": true,
+        "allowJs": true,
+        "importsNotUsedAsValues": "remove",
+        "lib": ["esnext", "dom.iterable", "dom", "scripthost", "es2015.symbol"],
+        "outDir": "./dist",
+        "baseUrl": "./",
+        "paths": {
+            "@/*": ["src/*"]
+        }
+    },
+    "include": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "typings/**/*.d.ts",
+        "scripts",
+        "**.js"
+    ]
+}
