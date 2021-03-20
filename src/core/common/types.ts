@@ -120,14 +120,10 @@ export interface CreateOptions {
         created?: (
             params: Required<AppParams>,
         ) => INestApplication | Promise<INestApplication>;
-        listend?: (params: Required<AppParams>) => void;
+        listend?: (params: Required<AppParams>) => boolean;
         closed?: (params: Required<AppParams>) => Promise<void>;
     };
-    meta?: {
-        global?: (params: AppParams) => ModuleMetadata;
-        plugin?: PluginMetaGetter;
-        boot?: (params: AppParams) => ModuleMetadata;
-    };
+    meta?: (params: AppParams) => ModuleMetadata;
     commands?: () => CommandCollection;
 }
 
@@ -137,14 +133,13 @@ export interface CreateOptions {
  * @export
  * @interface Creator
  */
-// export interface Creator {
-//     (): Promise<
-//         CommandParams & {
-//             commands?: () => CommandCollection;
-//         }
-//     >;
-// }
-
+export interface CreatorData extends Required<AppParams> {
+    commands: Array<CommandModule<any, any>>;
+    hooks: CreateOptions['hooks'];
+}
+export interface Creator {
+    (): Promise<CreatorData>;
+}
 /**
  * App实例化函数
  *

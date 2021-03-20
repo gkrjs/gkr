@@ -80,7 +80,7 @@ function getRunCommand(
     params: Required<AppParams>,
     hooks: CreateOptions['hooks'],
 ) {
-    const { configure, current } = params;
+    const { configure, current, utiler } = params;
     return {
         command: ['start', '$0'],
         describe: 'Start app',
@@ -96,9 +96,14 @@ function getRunCommand(
             await current.listen(port, '0.0.0.0', () => {
                 console.log();
                 console.log('Server has started:');
-                hooks?.listend
-                    ? hooks.listend(params)
-                    : console.log(`- API: ${chalk.green.underline(appUrl!)}`);
+                let customListend = false;
+                if (hooks?.listend) customListend = hooks.listend(params);
+                for (const { value } of utiler.all()) {
+                    customListend = value.listend(params);
+                }
+                if (!customListend) {
+                    console.log(`- API: ${chalk.green.underline(appUrl!)}`);
+                }
             });
         },
     };

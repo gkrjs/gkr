@@ -1,4 +1,6 @@
+import { AppParams } from '@/core/common';
 import { RouterModule } from 'nest-router';
+import { echoApi } from '../echo';
 import { ApiConfig } from '../types';
 import { DocUtil } from './doc.util';
 
@@ -22,12 +24,17 @@ export class ApiUtil extends DocUtil {
      * @return {*}
      * @memberof ApiUtil
      */
-    getGlobalMeta() {
+    globalMeta() {
         return {
             imports: [
                 ...Object.values(this.modules),
                 RouterModule.forRoutes(this._routes),
             ],
         };
+    }
+
+    listend(params: Required<AppParams>) {
+        echoApi(params, this);
+        return true;
     }
 }

@@ -10,7 +10,7 @@ import {
     getCommands,
     loadPlugins,
 } from './factory';
-import { AppParams, CreateOptions, Creator } from './types';
+import { AppParams, CreateOptions, Creator, CreatorData } from './types';
 import { Utiler } from './utiler';
 
 /**
@@ -111,51 +111,42 @@ export class App {
      * @return {*}  {Creator}
      * @memberof App
      */
-    static create(createOptions: CreateOptions) {
-        return async () => {
-            const {
-                configs,
-                meta,
-                factory,
-                hooks,
-                utils,
-                plugins = [],
-            } = createOptions;
-            try {
-                this.config(configs);
-                const params: AppParams = {
-                    configure: this._configure,
-                    utiler: this._utiler,
-                };
-                if (utils && utils.length > 0) this.utiler.add(...utils);
-                if (hooks?.inited) await hooks.inited(params);
-                const pluginsLoaded = loadPlugins(plugins, params, hooks);
-                const BootModule = createBootModule(
-                    params,
-                    meta,
-                    pluginsLoaded,
-                );
-                this.current = await factory({
-                    configure: this._configure,
-                    BootModule,
-                });
-                const appParams = {
-                    ...params,
-                    current: this.current,
-                };
-                this.current.enableShutdownHooks();
-                await this.current.init();
-                useContainer(this.current.select(BootModule), {
-                    fallbackOnErrors: true,
-                });
-                created(appParams, hooks);
-                this._commands = getCommands(appParams, hooks);
-            } catch (error) {
-                throw new Error(error);
-            }
-            return this;
-        };
+    static async create(options: CreateOptions): Promise<CreatorData> {
+        const { configs, meta, factory, hooks, utils, plugins = [] } = options;
+        try {
+            this.config(configs);
+            const params: AppParams = {
+                configure: this._configure,
+                utiler: this._utiler,
+            };
+            if (utils && utils.length > 0) this.utiler.add(...utils);
+            if (hooks?.inited) await hooks.inited(params);
+            const pluginsLoaded = loadPlugins(plugins, params, hooks);
+            const BootModule = createBootModule(params, meta, pluginsLoaded);
+            this.current = await factory({
+                configure: this._configure,
+                BootModule,
+            });
+            const appParams = {
+                ...params,
+                current: this.current,
+            };
+            this.current.enableShutdownHooks();
+            await this.current.init();
+            useContainer(this.current.select(BootModule), {
+                fallbackOnErrors: true,
+            });
+            created(appParams, hooks);
+            this._commands = getCommands(appParams, hooks);
+            return { commands: this._commands, hooks, ...appParams };
+        } catch (error) {
+            throw new Error(error);
+        }
     }
+}
+
+export function createApp(options: CreateOptions): Creator {
+    return () => App.create(options);
 }
 
 /**
@@ -165,6 +156,6 @@ export class App {
  * @param {Creator} creator
  */
 export async function run(creator: Creator) {
-    const app = await creator();
-    buildCommands(app);
+    const { commands } = await creator();
+    buildCommands(commands);
 }

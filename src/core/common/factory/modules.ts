@@ -50,10 +50,7 @@ export function mergeMeta(meta: PluginModuleMeta, custom: PluginModuleMeta) {
  * @param {() => ModuleMetadata} [metaGetter]
  * @return {*}  {Type<any>}
  */
-function createGlobalModule(
-    appParams: AppParams,
-    metaGetter?: (params: AppParams) => ModuleMetadata,
-): Type<any> {
+function createGlobalModule(appParams: AppParams): Type<any> {
     const GlobalModule = CreateModule('GlobalModule', () => {
         const { configure, utiler } = appParams;
         const utils = utiler.all().map((u) => u.use);
@@ -84,9 +81,10 @@ function createGlobalModule(
             ],
             exports: [...utils, Configure],
         };
-        if (metaGetter) {
-            meta = mergeMeta(meta, metaGetter(appParams));
-        }
+        meta = utiler
+            .all()
+            .map(({ value }) => value.globalMeta())
+            .reduce((o, n) => mergeMeta(o, n), meta);
         return meta;
     });
     Global()(GlobalModule);
@@ -101,24 +99,16 @@ function createGlobalModule(
  * @return {*}  {Type<any>[]}
  */
 function createPluginModules(
+    appParams: AppParams,
     plugins: Array<{ use: Type; meta: PluginModuleMeta }>,
-    metaGetter?: (
-        plugin: Type<any>,
-        meta: PluginModuleMeta,
-    ) => PluginModuleMeta,
 ): Type<any>[] {
+    const { utiler } = appParams;
     return plugins.map((plugin) => {
-        // const metaRegister = Reflect.getMetadata(
-        //     PLUGIN_MODULE_REGISTER,
-        //     plugin,
-        // );
-        // let meta: PluginModuleMeta = metaRegister ? metaRegister() : {};
-        if (metaGetter) {
-            plugin.meta = mergeMeta(
-                plugin.meta,
-                metaGetter(plugin.use, plugin.meta),
-            );
-        }
+        const utils = plugin.meta.utils ?? [];
+        const utilsMeta = utils
+            .map((util) => utiler.get(util).pluginMeta(plugin.use))
+            .reduce((o, n) => mergeMeta(o, n), {});
+        plugin.meta = mergeMeta(plugin.meta, utilsMeta);
 
         Module(pick(plugin.meta, metaKeys))(plugin.use);
         return plugin.use;
@@ -135,28 +125,17 @@ function createPluginModules(
  */
 export function createBootModule(
     appParams: AppParams,
-    metaGetter: CreateOptions['meta'],
+    bootMeta: CreateOptions['meta'],
     plugins: Array<{ use: Type; meta: PluginModuleMeta }>,
 ): Type<any> {
-    const { global: globalGetter, plugin: pluginGetter } = metaGetter ?? {};
-    const GlobalModule = createGlobalModule(appParams, globalGetter);
-    const modules = createPluginModules(
-        plugins,
-        pluginGetter
-            ? (plugin: Type<any>, meta: PluginModuleMeta) =>
-                  pluginGetter({
-                      plugin,
-                      meta,
-                      ...appParams,
-                  })
-            : undefined,
-    );
+    const GlobalModule = createGlobalModule(appParams);
+    const modules = createPluginModules(appParams, plugins);
     return CreateModule('BootModule', () => {
         let meta: ModuleMetadata = {
             imports: [GlobalModule, ...modules],
         };
-        if (metaGetter?.boot) {
-            meta = mergeMeta(meta, metaGetter.boot(appParams));
+        if (bootMeta) {
+            meta = mergeMeta(meta, bootMeta(appParams));
         }
         return meta;
     });

@@ -91,6 +91,10 @@ export abstract class BaseUtil<CT> {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     closed(): Promise<void> | void {}
 
+    listend(params: Required<AppParams>): boolean {
+        return false;
+    }
+
     commands(): Array<CommandItem<any, any>> {
         return [];
     }
