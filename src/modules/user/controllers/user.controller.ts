@@ -10,8 +10,14 @@ import {
     SerializeOptions,
     UseGuards,
 } from '@nestjs/common';
+import { ApiParam } from '@nestjs/swagger';
 import { classToPlain } from 'class-transformer';
-import { QueryUserDto, UpdateUserDto } from '../dtos';
+import {
+    DeleteUserDto,
+    DeleteUserMultiDto,
+    QueryUserDto,
+    UpdateUserDto,
+} from '../dtos';
 import { UserEntity } from '../entities';
 import { JwtAuthGuard } from '../guards';
 import { UserService } from '../services';
@@ -91,21 +97,25 @@ export class UserController {
         return this.userService.update(updateUserDto);
     }
 
-    /**
-     * 删除用户
-     *
-     * @param {UserEntity} user
-     * @returns
-     * @memberof UserManageController
-     */
-    @Delete(':id')
-    @UseGuards(JwtAuthGuard)
-    @SerializeOptions({
-        groups: ['user-item'],
-    })
+    @ApiParam({ name: 'user', type: String })
+    @Delete(':user')
+    @SerializeOptions({ groups: ['user-item'] })
     async destroy(
-        @Param('id', new ParseUUIDEntityPipe(UserEntity)) user: UserEntity,
+        @Body()
+        { trash }: DeleteUserDto,
+        @Param('user', new ParseUUIDEntityPipe(UserEntity))
+        post: UserEntity,
     ) {
-        return this.userService.delete(user);
+        return this.userService.delete(post, trash);
+    }
+
+    @Delete()
+    async destroyMulti(
+        @Query()
+        { page, limit, ...params }: QueryUserDto,
+        @Body()
+        data: DeleteUserMultiDto,
+    ) {
+        return this.userService.deleteMulti(data, params, { page, limit });
     }
 }

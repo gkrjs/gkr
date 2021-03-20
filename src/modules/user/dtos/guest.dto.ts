@@ -5,16 +5,20 @@ import {
     IsPassword,
     IsUnique,
     IsUniqueExist,
+    tBoolean,
 } from '@/core';
 import { Injectable } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
+    IsBoolean,
     IsDefined,
     IsEmail,
     IsEnum,
     IsNotEmpty,
     IsNumberString,
     IsOptional,
+    IsUUID,
     Length,
 } from 'class-validator';
 import { CaptchaDtoGroups, CaptchaType, UserDtoGroups } from '../constants';
@@ -168,4 +172,28 @@ export class GuestDto {
     })
     @IsEnum(CaptchaType)
     type!: CaptchaType;
+
+    @ApiPropertyOptional({ description: '是否软删除', default: true })
+    @Transform(({ value }) => (value ? tBoolean(value) : undefined))
+    @IsBoolean({ always: true })
+    @IsOptional({ always: true })
+    trash?: boolean;
+
+    @ApiProperty({ description: '用户UUID列表', type: [String] })
+    @IsModelExist(UserEntity, {
+        each: true,
+        message: '指定的用户不存在',
+        groups: [UserDtoGroups.DELETE_MULTIE],
+    })
+    @IsUUID(undefined, {
+        each: true,
+        message: 'ID格式错误',
+        groups: [UserDtoGroups.DELETE_MULTIE],
+    })
+    @IsDefined({
+        each: true,
+        groups: [UserDtoGroups.DELETE_MULTIE],
+        message: '用户ID必须指定',
+    })
+    users: UserEntity[] = [];
 }

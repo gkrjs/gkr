@@ -2,6 +2,7 @@ export enum UserDtoGroups {
     REGISTER = 'user-register',
     CREATE = 'user-create',
     UPDATE = 'user-update',
+    DELETE_MULTIE = 'user-delete-multi',
     BOUND = 'account-bound',
 }
 

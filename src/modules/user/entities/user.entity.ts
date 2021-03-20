@@ -1,8 +1,10 @@
 import { AddRelations, config, entityDate } from '@/core';
+import { Expose } from 'class-transformer';
 import {
     BaseEntity,
     Column,
     CreateDateColumn,
+    DeleteDateColumn,
     Entity,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -56,6 +58,15 @@ export class UserEntity extends BaseEntity {
     updated_at!: Date;
 
     /**
+     * 软删除时间
+     *
+     * @type {Date}
+     * @memberof PostEntity
+     */
+    @DeleteDateColumn({ comment: '软删除' })
+    deletedAt!: Date;
+
+    /**
      * 用户的登录令牌
      *
      * @type {AccessTokenEntity[]}
@@ -65,4 +76,13 @@ export class UserEntity extends BaseEntity {
         cascade: true,
     })
     accessTokens!: AccessTokenEntity[];
+
+    /**
+     * 是否位于回收站
+     *
+     * @type {boolean}
+     * @memberof PostEntity
+     */
+    @Expose()
+    trashed!: boolean;
 }

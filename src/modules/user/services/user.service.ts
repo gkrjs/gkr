@@ -4,6 +4,7 @@ import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { EntityNotFoundError } from 'typeorm/error/EntityNotFoundError';
 import {
     CreateUserDto,
+    DeleteUserMultiDto,
     QueryUserDto,
     UpdateInfoDto,
     UpdatePassword,
@@ -65,8 +66,40 @@ export class UserService {
         return item;
     }
 
-    async delete(item: UserEntity) {
-        return this.userRepository.remove(item);
+    /**
+     *删除文章
+     *
+     * @param {UserEntity} user
+     * @param {boolean} [trash=true]
+     * @return {*}
+     * @memberof UserService
+     */
+    async delete(user: UserEntity, trash = true) {
+        return trash
+            ? this.userRepository.softDelete(user)
+            : this.userRepository.delete(user);
+    }
+
+    /**
+     * 删除多篇文章
+     *
+     * 如果查询的列表是回收站的则直接硬删除
+     *
+     * @param {DeleteUserMultiDto} { users }
+     * @param {FindParams} query
+     * @param {IPaginationOptions} options
+     * @return {*}
+     * @memberof UserService
+     */
+    async deleteMulti(
+        { users }: DeleteUserMultiDto,
+        query: FindParams,
+        options: IPaginationOptions,
+    ) {
+        query.trashed
+            ? await this.userRepository.remove(users)
+            : await this.userRepository.softRemove(users);
+        return this.paginate(query, options);
     }
 
     /**
@@ -141,7 +174,6 @@ export class UserService {
         if (callback) {
             query = await callback(query);
         }
-        console.log(query.getSql());
         const user = query.getOne();
         if (!user) {
             throw new EntityNotFoundError(
