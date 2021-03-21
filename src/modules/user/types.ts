@@ -1,9 +1,10 @@
-import { DynamicRelation } from '@/core';
+import { ArrayItem, DynamicRelation } from '@/core';
 import { ObjectType } from 'typeorm';
-import { CaptchaActionType, CaptchaType } from './constants';
+import { CaptchaActionType, CaptchaType, UserFeatures } from './constants';
 import { CaptchaEntity } from './entities';
 
 /** ************************************ 模块配置 ******************************** */
+export type AuthFeature = ArrayItem<typeof UserFeatures>;
 
 /**
  * 用户模块配置
@@ -14,6 +15,7 @@ import { CaptchaEntity } from './entities';
 export interface UserConfig {
     hash: number; // 密码加密散列值
     jwt: Required<JwtConfig>; // jwt配置
+    enabled: Array<AuthFeature> | boolean;
     captcha: CaptchaConfig; // 验证码配置
     relations: DynamicRelation[];
 }
@@ -26,6 +28,7 @@ export interface UserConfig {
  */
 export interface CustomUserConfig {
     hash?: number;
+    enabled?: Array<AuthFeature> | boolean;
     jwt: JwtConfig;
     captcha?: CustomCaptchaConfig;
     relations?: DynamicRelation[];
@@ -39,6 +42,7 @@ export interface CustomUserConfig {
 export interface DefaultUserConfig {
     hash: number;
     jwt: Pick<Required<JwtConfig>, 'token_expired' | 'refresh_token_expired'>;
+    enabled: Array<AuthFeature>;
     captcha: DefaultCaptchaConfig;
     relations: DynamicRelation[];
 }

@@ -1,8 +1,8 @@
 import { config } from '@/core';
 import merge from 'deepmerge';
 import { get } from 'lodash';
-import { CaptchaActionType, CaptchaType } from './constants';
-import { DefaultUserConfig, UserConfig } from './types';
+import { CaptchaActionType, CaptchaType, UserFeatures } from './constants';
+import { CustomUserConfig, DefaultUserConfig, UserConfig } from './types';
 
 const getDefaultCaptcha = (type: CaptchaType) => {
     const defaultCaptchas = { enabled: false, limit: 60, expired: 60 * 5 };
@@ -28,6 +28,7 @@ const getDefaultCaptcha = (type: CaptchaType) => {
  */
 const defaultConfig: DefaultUserConfig = {
     hash: 10,
+    enabled: ['CREDENTIAL_LOGIN', 'USERNAME_REGISTER'],
     jwt: {
         token_expired: 3600,
         refresh_token_expired: 3600 * 30,
@@ -57,9 +58,12 @@ export function generateCatpchaCode() {
  * @return {*}  {T}
  */
 export function getUserConfig<T>(key?: string): T {
-    const userConfig = merge(
-        defaultConfig,
-        config<UserConfig>('user') ?? {},
-    ) as UserConfig;
+    const custom = config<CustomUserConfig>('user');
+    if (typeof custom.enabled === 'boolean' || custom.enabled) {
+        custom.enabled = UserFeatures;
+    }
+    const userConfig = merge(defaultConfig, config<UserConfig>('user') ?? {}, {
+        arrayMerge: (_d, s, _o) => Array.from(new Set(s)),
+    }) as UserConfig;
     return key ? get(userConfig, key) : userConfig;
 }

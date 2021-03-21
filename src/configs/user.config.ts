@@ -12,6 +12,7 @@ export const user: ConfigRegister<CustomUserConfig> = () => ({
         secret: env('AUTH_TOKEN_SECRET', 'my-secret'),
         refresh_secret: env('AUTH_REFRESH_TOKEN_SECRET', 'my-refresh-secret'),
     },
+    enabled: true,
     captcha: {
         sms: {
             login: {

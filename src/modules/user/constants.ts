@@ -35,6 +35,21 @@ export enum CaptchaDtoGroups {
     BOUND_EMAIL = 'bound-email',
 }
 
+export const UserFeatures = [
+    ...Object.keys(CaptchaDtoGroups),
+    'CREDENTIAL_LOGIN',
+    'USERNAME_REGISTER',
+] as Array<
+    keyof typeof CaptchaDtoGroups | 'CREDENTIAL_LOGIN' | 'USERNAME_REGISTER'
+>;
+
+export enum NoCaptchaAuth {
+    // 发送短信登录验证码
+    CREDENTIAL_LOGIN = 'credential-login',
+    // 发送邮件登录验证码
+    USERNAME_REGISTER = 'username-register',
+}
+
 /**
  * 验证码操作类别
  *
