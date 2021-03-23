@@ -136,7 +136,6 @@ export interface DefaultCaptchaConfig {
  * @interface CaptchaOption
  */
 export interface CaptchaOption {
-    enabled: boolean; // 是否启用
     limit: number; // 验证码发送间隔时间
     expired: number; // 验证码有效时间
     driver?: string; // 发送验证码的短信或邮件的驱动名

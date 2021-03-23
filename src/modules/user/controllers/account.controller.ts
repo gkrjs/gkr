@@ -1,48 +1,38 @@
 import { APIEnabled, Depends } from '@/core';
-import {
-    Body,
-    Controller,
-    Get,
-    Patch,
-    Post,
-    SerializeOptions,
-    UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Patch, SerializeOptions } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CaptchaActionType, CaptchaType } from '../constants';
+import { CaptchaType } from '../constants';
 import { ReqUser } from '../decorators';
 import {
-    BoundEmailCaptchaDto,
-    BoundPhoneCaptchaDto,
     EmailBoundDto,
     PhoneBoundDto,
     UpdateInfoDto,
     UpdatePassword,
-    UserCaptchaMessageDto,
 } from '../dtos';
 import { UserEntity } from '../entities';
-import { JwtAuthGuard } from '../guards';
 import { IsUserEnabled } from '../helpers';
 import { AccountService, CaptchaService, UserService } from '../services';
 import { UserModule } from '../user.module';
+import { CaptchaController } from './captcha.controller';
 
 /**
  * 账户中心控制器
  *
  * @export
  * @class AccountController
- * @extends {JWTController}
+ * @extends {CaptchaController}
  */
 @Controller('account')
 @Depends(UserModule)
 @ApiTags('账户信息')
-@UseGuards(JwtAuthGuard)
-export class AccountController {
+export class AccountController extends CaptchaController {
     constructor(
         protected readonly captchaService: CaptchaService,
         protected readonly userService: UserService,
         protected readonly accountService: AccountService,
-    ) {}
+    ) {
+        super(captchaService);
+    }
 
     /**
      * 获取用户个人信息
@@ -147,65 +137,5 @@ export class AccountController {
             type: CaptchaType.EMAIL,
             value: data.email,
         });
-    }
-
-    /**
-     * 发送手机绑定验证码
-     *
-     * @param {BoundPhoneCaptchaDto} data
-     * @return {*}
-     * @memberof AccountController
-     */
-    @Post('send-phone-bound')
-    @APIEnabled(() => IsUserEnabled('BOUND_PHONE'))
-    async sendBoundPhone(@Body() data: BoundPhoneCaptchaDto) {
-        return this.captchaService.sendByType(
-            data,
-            CaptchaActionType.ACCOUNTBOUND,
-            CaptchaType.SMS,
-            'can not send sms for bind phone',
-        );
-    }
-
-    /**
-     * 发送邮件绑定验证码
-     *
-     * @param {BoundEmailCaptchaDto} data
-     * @return {*}
-     * @memberof AccountController
-     */
-    @Post('send-email-bound')
-    @APIEnabled(() => IsUserEnabled('BOUND_EMAIL'))
-    async sendEmailBound(@Body() data: BoundEmailCaptchaDto) {
-        return this.captchaService.sendByType(
-            data,
-            CaptchaActionType.ACCOUNTBOUND,
-            CaptchaType.EMAIL,
-            'can not send email for bind',
-        );
-    }
-
-    /**
-     * 发送原手机或原邮箱验证码
-     *
-     * @param {UserEntity} user
-     * @param {UserCaptchaMessageDto} { type }
-     * @return {*}
-     * @memberof AccountController
-     */
-    @Post('send-old-bound')
-    @APIEnabled(() => IsUserEnabled(['BOUND_PHONE', 'BOUND_EMAIL']))
-    async sendOldBoundCaptcha(
-        @ReqUser() user: UserEntity,
-        @Body() { type }: UserCaptchaMessageDto,
-    ) {
-        return this.captchaService.sendByUser(
-            user,
-            CaptchaActionType.ACCOUNTBOUND,
-            type,
-            `can not send sms or email for bind ${
-                type === CaptchaType.SMS ? 'phone number' : 'email'
-            }!`,
-        );
     }
 }

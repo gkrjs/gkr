@@ -8,7 +8,6 @@ import {
     Patch,
     Query,
     SerializeOptions,
-    UseGuards,
 } from '@nestjs/common';
 import { ApiParam } from '@nestjs/swagger';
 import { classToPlain } from 'class-transformer';
@@ -19,7 +18,6 @@ import {
     UpdateUserDto,
 } from '../dtos';
 import { UserEntity } from '../entities';
-import { JwtAuthGuard } from '../guards';
 import { UserService } from '../services';
 import { UserModule } from '../user.module';
 
@@ -27,8 +25,7 @@ import { UserModule } from '../user.module';
  * 用户管理控制器
  *
  * @export
- * @class UserManageController
- * @extends {BaseController}
+ * @class UserController
  */
 @Controller()
 @Depends(UserModule)
@@ -39,11 +36,10 @@ export class UserController {
      * 根据条件分页查询
      *
      * @param {QueryUserDto} { page, limit, actived }
-     * @returns
-     * @memberof UserManageController
+     * @return {*}
+     * @memberof UserController
      */
     @Get()
-    @UseGuards(JwtAuthGuard)
     async index(@Query() { page, limit, actived }: QueryUserDto) {
         const result = await this.userService.paginate(
             {
@@ -63,11 +59,10 @@ export class UserController {
      * 用户详细信息
      *
      * @param {UserEntity} user
-     * @returns {Promise<UserEntity>}
-     * @memberof UserManageController
+     * @return {*}  {Promise<UserEntity>}
+     * @memberof UserController
      */
     @Get(':id')
-    @UseGuards(JwtAuthGuard)
     @SerializeOptions({
         groups: ['user-item'],
     })
@@ -82,11 +77,10 @@ export class UserController {
      * 更新用户信息
      *
      * @param {UpdateUserDto} updateUserDto
-     * @returns {Promise<UserEntity>}
-     * @memberof UserManageController
+     * @return {*}  {Promise<UserEntity>}
+     * @memberof UserController
      */
     @Patch()
-    @UseGuards(JwtAuthGuard)
     @SerializeOptions({
         groups: ['user-item'],
     })

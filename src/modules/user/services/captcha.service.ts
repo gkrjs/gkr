@@ -1,4 +1,4 @@
-import { Configure, SmsUtil, TimeUtil } from '@/core';
+import { ArrayItem, Configure, SmsUtil, TimeUtil } from '@/core';
 import { InjectQueue } from '@nestjs/bull';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import {
     CaptchaActionType,
     CaptchaType,
+    FeatureEnabled,
     SEND_CAPTCHA_PROCESS,
     SEND_CAPTCHA_QUEUE,
 } from '../constants';
@@ -17,10 +18,39 @@ import {
     PhoneCaptchaMessageDto,
 } from '../dtos';
 import { CaptchaEntity, UserEntity } from '../entities';
-import { generateCatpchaCode, getUserConfig } from '../helpers';
-import { CaptchaOption, EmailCaptchaOption, SmsCaptchaOption } from '../types';
+import { generateCatpchaCode, getUserConfig, IsUserEnabled } from '../helpers';
+import { CaptchaOption } from '../types';
 import { UserService } from './user.service';
 
+type CheckType = ArrayItem<typeof FeatureEnabled> | typeof FeatureEnabled;
+type RecordCheckType = Partial<Record<'phone' | 'email', CheckType>>;
+interface CommonSendParams {
+    action: CaptchaActionType;
+    type: CaptchaType;
+    message?: string;
+    checks?: CheckType;
+}
+interface SendParams extends CommonSendParams {
+    data: PhoneCaptchaMessageDto | EmailCaptchaMessageDto;
+    code?: string;
+}
+interface UserSendParams extends Omit<CommonSendParams, 'checks' | 'type'> {
+    user: UserEntity;
+    checks?: RecordCheckType;
+    type?: CaptchaType;
+}
+
+interface CredentialSendParams
+    extends Omit<CommonSendParams, 'checks' | 'type'> {
+    credential: CredentialCaptchaMessageDto['credential'];
+    checks?: RecordCheckType;
+    type?: CaptchaType;
+}
+
+interface TypeSendParams extends Omit<CommonSendParams, 'checks'> {
+    data: PhoneCaptchaMessageDto | EmailCaptchaMessageDto;
+    checks?: RecordCheckType;
+}
 /**
  * 验证码发送服务
  *
@@ -42,19 +72,12 @@ export class CaptchaService {
     /**
      * 根据消息类型(短信/邮件)发送验证码
      *
-     * @param {(PhoneCaptchaMessageDto | EmailCaptchaMessageDto)} data
-     * @param {CaptchaActionType} action
-     * @param {CaptchaType} type
-     * @param {string} [message]
+     * @param {TypeSendParams} params
      * @return {*}
      * @memberof CaptchaService
      */
-    async sendByType(
-        data: PhoneCaptchaMessageDto | EmailCaptchaMessageDto,
-        action: CaptchaActionType,
-        type: CaptchaType,
-        message?: string,
-    ) {
+    async sendByType(params: TypeSendParams) {
+        const { data, action, type, message } = params;
         const key = type === CaptchaType.SMS ? 'phone' : 'email';
         const conditional = { [key]: (data as any)[key] };
         const user = await this.userService.findOneByCondition(conditional);
@@ -65,48 +88,40 @@ export class CaptchaService {
                 } not exists`,
             );
         }
-        return this.sendByUser(user, action, type, message);
+        return this.sendByUser({
+            user,
+            action,
+            type,
+            message,
+            checks: params.checks,
+        });
     }
 
     /**
-     * 通过登录凭证发送验证码
+     * 过登录凭证发送验证码
      *
-     * @param {CredentialCaptchaMessageDto} { credential }
-     * @param {CaptchaActionType} action
-     * @param {CaptchaType} [type]
-     * @param {string} [message]
+     * @param {CredentialSendParams} params
      * @return {*}
      * @memberof CaptchaService
      */
-    async sendByCredential(
-        { credential }: CredentialCaptchaMessageDto,
-        action: CaptchaActionType,
-        type?: CaptchaType,
-        message?: string,
-    ) {
+    async sendByCredential(params: CredentialSendParams) {
+        const { credential, ...others } = params;
         const user = await this.userService.findOneByCredential(credential);
         if (!user) {
             throw new BadRequestException(`user ${credential} not exists`);
         }
-        return this.sendByUser(user, action, type, message);
+        return this.sendByUser({ user, ...others });
     }
 
     /**
      * 通过用户对象发送验证码
      *
-     * @param {UserEntity} user
-     * @param {CaptchaActionType} action
-     * @param {CaptchaType} [type]
-     * @param {string} [message]
+     * @param {UserSendParams} params
      * @return {*}
      * @memberof CaptchaService
      */
-    async sendByUser(
-        user: UserEntity,
-        action: CaptchaActionType,
-        type?: CaptchaType,
-        message?: string,
-    ) {
+    async sendByUser(params: UserSendParams) {
+        const { user, action, type, message, checks = {} } = params;
         // 创建发送类型列表
         const types: CaptchaType[] = type
             ? [type]
@@ -121,26 +136,27 @@ export class CaptchaService {
             if (types.length > 1) error = 'can not send sms or email for you!';
             else error = `can not send ${types[0]} for you!`;
         }
+        // 生成随机验证码
+        const code = generateCatpchaCode();
         // 遍历发送类型列表
         for (const stype of types) {
             const key = stype === CaptchaType.SMS ? 'phone' : 'email';
-            const config = getUserConfig<SmsCaptchaOption | EmailCaptchaOption>(
-                `captcha.${stype}.${action}`,
-            );
-            // 生成随机验证码
-            const code = generateCatpchaCode();
-            if (config.enabled && user[key]) {
+            let isEnabled = true;
+            if (checks[key]) isEnabled = IsUserEnabled(checks[key]!);
+            // 如果开启当前功能则发送验证码
+            if (isEnabled && user[key]) {
                 try {
                     const data = { [key]: user[key] } as {
                         [key in 'phone' | 'email']: string;
                     };
                     // 添加发送任务
-                    const { result, log } = await this.send(
+                    const { result, log } = await this.send({
                         data,
                         action,
-                        stype,
+                        type: stype,
                         code,
-                    );
+                        checks: checks[key],
+                    });
                     results[key] = result;
                     logs[key] = log;
                 } catch (err) {
@@ -154,40 +170,33 @@ export class CaptchaService {
     /**
      * 送短信或邮件验证码
      *
-     * @param {(PhoneCaptchaMessageDto | EmailCaptchaMessageDto)} data
-     * @param {CaptchaActionType} action
-     * @param {CaptchaType} type
-     * @param {string} [captchaCode]
-     * @param {string} [message]
+     * @param {SendParams} params
      * @return {*}  {Promise<{ result: boolean; log: any }>}
      * @memberof CaptchaService
      */
-    async send(
-        data: PhoneCaptchaMessageDto | EmailCaptchaMessageDto,
-        action: CaptchaActionType,
-        type: CaptchaType,
-        captchaCode?: string,
-        message?: string,
-    ): Promise<{ result: boolean; log: any }> {
+    async send(params: SendParams): Promise<{ result: boolean; log: any }> {
+        const { data, action, type, code, message, checks } = params;
         let log: any;
         const result = true;
-        const code = captchaCode ?? generateCatpchaCode();
+        const captchaCode = code ?? generateCatpchaCode();
         const error =
             message ??
             `send ${type === CaptchaType.SMS ? 'sms' : 'email'} captcha failed`;
         try {
+            const isEnabled = checks ? IsUserEnabled(checks) : true;
+            // 如果没有启用则400响应
+            if (!isEnabled) throw new BadRequestException(error);
+            // 获取验证码发送配置
             const config = getUserConfig<CaptchaOption>(
                 `captcha.${type}.${action}`,
             );
-            // 如果没有启用则400响应
-            if (!config.enabled) throw new BadRequestException(error);
             // 创建验证码模型实例
             const captcha = await this.createCaptcha(
                 data,
                 action,
                 type,
                 config,
-                code,
+                captchaCode,
             );
             const expired = getUserConfig<number>(
                 `captcha.${type}.${action}.expired`,

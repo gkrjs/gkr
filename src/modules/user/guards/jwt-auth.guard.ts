@@ -3,8 +3,10 @@ import {
     Injectable,
     UnauthorizedException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { ExtractJwt } from 'passport-jwt';
+import { ALLOW_GUEST } from '../constants';
 import { TokenService } from '../services';
 
 /**
@@ -17,7 +19,10 @@ import { TokenService } from '../services';
  */
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-    constructor(private readonly tokenService: TokenService) {
+    constructor(
+        private reflector: Reflector,
+        private readonly tokenService: TokenService,
+    ) {
         super();
     }
 
@@ -29,6 +34,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
      * @memberof JwtAuthGuard
      */
     async canActivate(context: ExecutionContext) {
+        const allowGuest = this.reflector.getAllAndOverride<boolean>(
+            ALLOW_GUEST,
+            [context.getHandler(), context.getClass()],
+        );
+        if (allowGuest) return true;
         const request = this.getRequest(context);
         const response = this.getResponse(context);
         // if (!request.headers.authorization) return false;
