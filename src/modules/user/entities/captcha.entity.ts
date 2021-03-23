@@ -12,7 +12,7 @@ import { CaptchaActionType, CaptchaType } from '../constants';
  * 验证码模型
  *
  * @export
- * @class Captcha
+ * @class CaptchaEntity
  */
 @Entity('user_captchas')
 export class CaptchaEntity {

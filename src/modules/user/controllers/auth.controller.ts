@@ -1,4 +1,4 @@
-import { Depends } from '@/core';
+import { APIEnabled, Depends } from '@/core';
 import {
     Body,
     Controller,
@@ -30,6 +30,7 @@ import {
 } from '../dtos';
 import { UserEntity } from '../entities';
 import { JwtAuthGuard, LocalAuthGuard } from '../guards';
+import { IsUserEnabled } from '../helpers';
 import { AuthService, CaptchaService } from '../services';
 import { UserModule } from '../user.module';
 
@@ -70,6 +71,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('PHONE_LOGIN'))
     @Post('phone-login')
     async loginByPhone(@Body() { phone, code }: PhoneLoginDto) {
         const user = await this.authService.loginByCaptcha(
@@ -87,6 +89,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('EMAIL_LOGIN'))
     @Post('email-login')
     async loginByEmail(@Body() { email, code }: EmailLoginDto) {
         const user = await this.authService.loginByCaptcha(
@@ -104,6 +107,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('LOGOUT'))
     @Post('logout')
     @UseGuards(JwtAuthGuard)
     async logout(@Request() req: any) {
@@ -117,6 +121,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('USERNAME_REGISTER'))
     @Post('register')
     async register(
         @Body()
@@ -132,6 +137,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('PHONE_REGISTER'))
     @Post('phone-register')
     async registerByPhone(
         @Body()
@@ -151,6 +157,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('EMAIL_REGISTER'))
     @Post('email-register')
     async registerByEmail(
         @Body()
@@ -170,6 +177,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('CREDENTIAL_RETRIEVE_PASSWORD'))
     @Patch('retrieve-password')
     async retrievePassword(
         @Body()
@@ -188,6 +196,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('PHONE_RETRIEVE_PASSWORD'))
     @Patch('retrieve-password-sms')
     async retrievePasswordByPhone(
         @Body()
@@ -207,6 +216,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('EMAIL_RETRIEVE_PASSWORD'))
     @Patch('retrieve-password-email')
     async retrievePasswordByEmail(
         @Body()
@@ -226,6 +236,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('PHONE_LOGIN'))
     @Post('send-login-sms')
     async sendLoginSms(
         @Body()
@@ -245,6 +256,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('EMAIL_LOGIN'))
     @Post('send-login-email')
     async sendLoginEmail(
         @Body()
@@ -264,6 +276,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('PHONE_REGISTER'))
     @Post('send-register-sms')
     async sendRegisterSms(
         @Body()
@@ -286,6 +299,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('EMAIL_REGISTER'))
     @Post('send-register-email')
     async sendRegisterEmail(
         @Body()
@@ -308,6 +322,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('PHONE_RETRIEVE_PASSWORD'))
     @Post('send-retrieve-password-sms')
     async sendRetrievePasswordSms(
         @Body()
@@ -328,6 +343,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('EMAIL_RETRIEVE_PASSWORD'))
     @Post('send-retrieve-password-email')
     async sendRetrievePasswordEmail(
         @Body()
@@ -348,6 +364,7 @@ export class AuthController {
      * @return {*}
      * @memberof AuthController
      */
+    @APIEnabled(() => IsUserEnabled('CREDENTIAL_RETRIEVE_PASSWORD'))
     @Post('send-retrieve-password')
     async sendRetrievePasswordCaptcha(
         @Body()

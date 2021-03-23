@@ -97,9 +97,11 @@ function getRunCommand(
                 console.log();
                 console.log('Server has started:');
                 let customListend = false;
-                if (hooks?.listend) customListend = hooks.listend(params);
+                if (hooks?.listend) {
+                    if (hooks.listend(params)) customListend = true;
+                }
                 for (const { value } of utiler.all()) {
-                    customListend = value.listend(params);
+                    if (value.listend(params)) customListend = true;
                 }
                 if (!customListend) {
                     console.log(`- API: ${chalk.green.underline(appUrl!)}`);

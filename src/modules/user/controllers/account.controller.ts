@@ -1,4 +1,4 @@
-import { Depends } from '@/core';
+import { APIEnabled, Depends } from '@/core';
 import {
     Body,
     Controller,
@@ -22,6 +22,7 @@ import {
 } from '../dtos';
 import { UserEntity } from '../entities';
 import { JwtAuthGuard } from '../guards';
+import { IsUserEnabled } from '../helpers';
 import { AccountService, CaptchaService, UserService } from '../services';
 import { UserModule } from '../user.module';
 
@@ -47,14 +48,15 @@ export class AccountController {
      * 获取用户个人信息
      *
      * @param {UserEntity} user
-     * @returns
+     * @return {*}
      * @memberof AccountController
      */
     @Get()
+    @APIEnabled(() => IsUserEnabled('GET_INFO'))
     @SerializeOptions({
         groups: ['user-item'],
     })
-    async getProfile(@ReqUser() user: UserEntity) {
+    async getInfo(@ReqUser() user: UserEntity) {
         return this.userService.findOneById(user.id);
     }
 
@@ -67,10 +69,11 @@ export class AccountController {
      * @memberof AccountController
      */
     @Patch()
+    @APIEnabled(() => IsUserEnabled('UPDATE_INFO'))
     @SerializeOptions({
         groups: ['user-item'],
     })
-    async update(
+    async updateInfo(
         @ReqUser() user: UserEntity,
         @Body()
         data: UpdateInfoDto,
@@ -86,11 +89,12 @@ export class AccountController {
      * @return {*}  {Promise<UserEntity>}
      * @memberof AccountController
      */
-    @Patch('update-passowrd')
+    @Patch('reset-passowrd')
+    @APIEnabled(() => IsUserEnabled('ACCOUNT_RESET_PASSWORD'))
     @SerializeOptions({
         groups: ['user-item'],
     })
-    async updatePassword(
+    async resetPassword(
         @ReqUser() user: UserEntity,
         @Body() data: UpdatePassword,
     ): Promise<UserEntity> {
@@ -106,6 +110,7 @@ export class AccountController {
      * @memberof AccountController
      */
     @Patch('bound-phone')
+    @APIEnabled(() => IsUserEnabled('BOUND_PHONE'))
     @SerializeOptions({
         groups: ['user-item'],
     })
@@ -129,6 +134,7 @@ export class AccountController {
      * @memberof AccountController
      */
     @Patch('bound-email')
+    @APIEnabled(() => IsUserEnabled('BOUND_EMAIL'))
     @SerializeOptions({
         groups: ['user-item'],
     })
@@ -151,6 +157,7 @@ export class AccountController {
      * @memberof AccountController
      */
     @Post('send-phone-bound')
+    @APIEnabled(() => IsUserEnabled('BOUND_PHONE'))
     async sendBoundPhone(@Body() data: BoundPhoneCaptchaDto) {
         return this.captchaService.sendByType(
             data,
@@ -168,6 +175,7 @@ export class AccountController {
      * @memberof AccountController
      */
     @Post('send-email-bound')
+    @APIEnabled(() => IsUserEnabled('BOUND_EMAIL'))
     async sendEmailBound(@Body() data: BoundEmailCaptchaDto) {
         return this.captchaService.sendByType(
             data,
@@ -186,6 +194,7 @@ export class AccountController {
      * @memberof AccountController
      */
     @Post('send-old-bound')
+    @APIEnabled(() => IsUserEnabled(['BOUND_PHONE', 'BOUND_EMAIL']))
     async sendOldBoundCaptcha(
         @ReqUser() user: UserEntity,
         @Body() { type }: UserCaptchaMessageDto,

@@ -32,11 +32,26 @@ export class SendCaptchaProcessor {
         private readonly sms: SmsUtil,
     ) {}
 
+    /**
+     * 发送消息处理器
+     *
+     * @param {Job<SendCaptchaQueueJob>} job
+     * @return {*}
+     * @memberof SendCaptchaProcessor
+     */
     @Process(SEND_CAPTCHA_PROCESS)
     async sendHandler(job: Job<SendCaptchaQueueJob>) {
         return this.sendCode(job);
     }
 
+    /**
+     * 发送验证码
+     *
+     * @protected
+     * @param {Job<SendCaptchaQueueJob>} job
+     * @return {*}
+     * @memberof SendCaptchaProcessor
+     */
     protected async sendCode(job: Job<SendCaptchaQueueJob>) {
         const { captcha } = job.data;
         try {
@@ -54,6 +69,14 @@ export class SendCaptchaProcessor {
         }
     }
 
+    /**
+     * 发送短信验证码
+     *
+     * @protected
+     * @param {SendCaptchaQueueJob} data
+     * @return {*}
+     * @memberof SendCaptchaProcessor
+     */
     protected async sendSms(data: SendCaptchaQueueJob) {
         const {
             captcha: { value, code },
@@ -72,6 +95,14 @@ export class SendCaptchaProcessor {
         return result;
     }
 
+    /**
+     * 发送邮件验证码
+     *
+     * @protected
+     * @param {SendCaptchaQueueJob} data
+     * @return {*}
+     * @memberof SendCaptchaProcessor
+     */
     protected async sendEmail(data: SendCaptchaQueueJob) {
         const {
             captcha: { action, value, code },

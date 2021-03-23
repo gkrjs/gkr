@@ -1,9 +1,15 @@
-import { config } from '@/core';
+import { ArrayItem, config } from '@/core';
 import merge from 'deepmerge';
 import { get } from 'lodash';
-import { CaptchaActionType, CaptchaType, UserFeatures } from './constants';
+import { CaptchaActionType, CaptchaType, FeatureEnabled } from './constants';
 import { CustomUserConfig, DefaultUserConfig, UserConfig } from './types';
 
+/**
+ * 获取默认的验证码配置
+ *
+ * @param {CaptchaType} type
+ * @return {*}
+ */
 const getDefaultCaptcha = (type: CaptchaType) => {
     const defaultCaptchas = { enabled: false, limit: 60, expired: 60 * 5 };
     const subjects: { [key in CaptchaActionType]: string } = {
@@ -24,11 +30,11 @@ const getDefaultCaptcha = (type: CaptchaType) => {
 };
 
 /**
- * 默认验证码配置
+ * 默认用户配置
  */
 const defaultConfig: DefaultUserConfig = {
     hash: 10,
-    enabled: ['CREDENTIAL_LOGIN', 'USERNAME_REGISTER'],
+    features: ['CREDENTIAL_LOGIN', 'USERNAME_REGISTER'],
     jwt: {
         token_expired: 3600,
         refresh_token_expired: 3600 * 30,
@@ -59,11 +65,28 @@ export function generateCatpchaCode() {
  */
 export function getUserConfig<T>(key?: string): T {
     const custom = config<CustomUserConfig>('user');
-    if (typeof custom.enabled === 'boolean' || custom.enabled) {
-        custom.enabled = UserFeatures;
+    if (typeof custom.features === 'boolean' || custom.features) {
+        custom.features = FeatureEnabled;
     }
     const userConfig = merge(defaultConfig, config<UserConfig>('user') ?? {}, {
         arrayMerge: (_d, s, _o) => Array.from(new Set(s)),
     }) as UserConfig;
     return key ? get(userConfig, key) : userConfig;
+}
+
+export function IsUserEnabled(
+    feature: ArrayItem<typeof FeatureEnabled> | typeof FeatureEnabled,
+    operation: 'and' | 'or' = 'or',
+): boolean {
+    if (Array.isArray(feature)) {
+        if (operation === 'and') {
+            return feature.every((f) =>
+                getUserConfig<typeof FeatureEnabled>('features').includes(f),
+            );
+        }
+        return !!feature.find((f) =>
+            getUserConfig<typeof FeatureEnabled>('features').includes(f),
+        );
+    }
+    return getUserConfig<typeof FeatureEnabled>('features').includes(feature);
 }

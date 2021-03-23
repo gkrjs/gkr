@@ -32,7 +32,7 @@ export class UserService {
      * 创建用户
      *
      * @param {CreateUserDto} data
-     * @returns
+     * @return {*}
      * @memberof UserService
      */
     async create(data: CreateUserDto) {
@@ -43,8 +43,8 @@ export class UserService {
     /**
      * 更新用户
      *
-     * @param {UpdateUserDto} data
-     * @returns
+     * @param {(UpdateUserDto | UpdateInfoDto)} data
+     * @return {*}
      * @memberof UserService
      */
     async update(data: UpdateUserDto | UpdateInfoDto) {
@@ -52,6 +52,14 @@ export class UserService {
         return this.findOneById(user.id);
     }
 
+    /**
+     * 更新用户密码
+     *
+     * @param {UserEntity} user
+     * @param {UpdatePassword} { password, oldPassword }
+     * @return {*}
+     * @memberof UserService
+     */
     async updatePassword(
         user: UserEntity,
         { password, oldPassword }: UpdatePassword,
@@ -67,10 +75,10 @@ export class UserService {
     }
 
     /**
-     *删除文章
+     * 删除文章
      *
      * @param {UserEntity} user
-     * @param {boolean} [trash=true]
+     * @param {boolean} [trash=true] // 是否软删除
      * @return {*}
      * @memberof UserService
      */
@@ -82,7 +90,6 @@ export class UserService {
 
     /**
      * 删除多篇文章
-     *
      * 如果查询的列表是回收站的则直接硬删除
      *
      * @param {DeleteUserMultiDto} { users }
@@ -107,7 +114,7 @@ export class UserService {
      *
      * @param {string} credential
      * @param {QueryHook<UserEntity>} [callback]
-     * @returns
+     * @return {*}
      * @memberof UserService
      */
     async findOneByCredential(
@@ -130,7 +137,7 @@ export class UserService {
      *
      * @param {string} id
      * @param {QueryHook<UserEntity>} [callback]
-     * @returns
+     * @return {*}
      * @memberof UserService
      */
     async findOneById(id: string, callback?: QueryHook<UserEntity>) {

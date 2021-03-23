@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { camelCase, upperFirst } from 'lodash';
 import { Route, Routes } from 'nest-router';
 import { CreateModule } from '../../../common';
-import { CONTROLLER_DEPENDS } from '../constants';
+import { CONTROLLER_API_ENABLED, CONTROLLER_DEPENDS } from '../constants';
 import { RouteOption } from '../types';
 import { ApiBaseUtil } from './base.util';
 
@@ -66,13 +66,28 @@ export abstract class RouteUtil extends ApiBaseUtil {
 
                 // 为每个没有自己添加`ApiTags`装饰器的控制器添加Tag
                 if (doc?.tags && doc.tags.length > 0) {
-                    controllers.forEach(
-                        (controller) =>
-                            !Reflect.getMetadata(
-                                'swagger/apiUseTags',
-                                controller,
-                            ) && ApiTags(...doc.tags!)(controller),
-                    );
+                    controllers.forEach((controller) => {
+                        !Reflect.getMetadata(
+                            'swagger/apiUseTags',
+                            controller,
+                        ) && ApiTags(...doc.tags!)(controller);
+                        const descriptors = Object.getOwnPropertyDescriptors(
+                            controller.prototype,
+                        );
+                        for (const key in descriptors) {
+                            const enabled = Reflect.getMetadata(
+                                CONTROLLER_API_ENABLED,
+                                controller.prototype[key],
+                            );
+                            if (enabled && typeof enabled === 'function') {
+                                if (!enabled())
+                                    Reflect.deleteProperty(
+                                        controller.prototype,
+                                        key,
+                                    );
+                            }
+                        }
+                    });
                 }
                 // 创建路由模块,并导入所有控制器的依赖模块
                 const module = CreateModule(

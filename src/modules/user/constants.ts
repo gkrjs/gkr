@@ -1,3 +1,10 @@
+/** ************************************ 请求验证(DTO) ******************************** */
+/**
+ * 用户请求DTO验证组
+ *
+ * @export
+ * @enum {number}
+ */
 export enum UserDtoGroups {
     REGISTER = 'user-register',
     CREATE = 'user-create',
@@ -7,7 +14,7 @@ export enum UserDtoGroups {
 }
 
 /**
- * 验证码发送数据验证组
+ * 验证码发送数据DTO验证组
  *
  * @export
  * @enum {number}
@@ -35,21 +42,42 @@ export enum CaptchaDtoGroups {
     BOUND_EMAIL = 'bound-email',
 }
 
-export const UserFeatures = [
+/**
+ * 用户列表查询排序方式
+ *
+ * @export
+ * @enum {number}
+ */
+export enum UserOrderType {
+    CREATED = 'createdAt',
+    UPDATED = 'updatedAt',
+}
+
+/** ************************************ 模块配置 ******************************** */
+/**
+ * 启用的功能
+ */
+export const FeatureEnabled = [
     ...Object.keys(CaptchaDtoGroups),
     'CREDENTIAL_LOGIN',
     'USERNAME_REGISTER',
+    'CREDENTIAL_RETRIEVE_PASSWORD',
+    'LOGOUT',
+    'GET_INFO',
+    'UPDATE_INFO',
+    'ACCOUNT_RESET_PASSWORD',
 ] as Array<
-    keyof typeof CaptchaDtoGroups | 'CREDENTIAL_LOGIN' | 'USERNAME_REGISTER'
+    | keyof typeof CaptchaDtoGroups
+    | 'CREDENTIAL_LOGIN'
+    | 'USERNAME_REGISTER'
+    | 'CREDENTIAL_RETRIEVE_PASSWORD'
+    | 'LOGOUT'
+    | 'GET_INFO'
+    | 'UPDATE_INFO'
+    | 'ACCOUNT_RESET_PASSWORD'
 >;
 
-export enum NoCaptchaAuth {
-    // 发送短信登录验证码
-    CREDENTIAL_LOGIN = 'credential-login',
-    // 发送邮件登录验证码
-    USERNAME_REGISTER = 'username-register',
-}
-
+/** ************************************ 验证码 ******************************** */
 /**
  * 验证码操作类别
  *
@@ -68,18 +96,6 @@ export enum CaptchaActionType {
     // 手机号或邮箱地址绑定操作
     ACCOUNTBOUND = 'account-bound',
 }
-
-/**
- * 排序方式
- *
- * @export
- * @enum {number}
- */
-export enum UserOrderType {
-    CREATED = 'createdAt',
-    UPDATED = 'updatedAt',
-}
-
 /**
  * 验证码类型
  *
@@ -91,11 +107,7 @@ export enum CaptchaType {
     EMAIL = 'email',
 }
 
-/**
- * 判断资源所属的装饰器常量
- */
-export const OWNER_RESOURCE = 'onwer-resource';
-
+/** ************************************ 列队任务 ******************************** */
 /**
  * 发送验证码异步列队名称
  */
@@ -105,3 +117,13 @@ export const SEND_CAPTCHA_QUEUE = 'send-captcha-queue';
  * 发送验证码任务处理名称
  */
 export const SEND_CAPTCHA_PROCESS = 'send-captcha-process';
+
+/** ************************************ 装饰器 ******************************** */
+/**
+ * 判断资源所属的装饰器常量
+ */
+export const OWNER_RESOURCE = 'onwer-resource';
+/**
+ * 允许游客访问的装饰器常量
+ */
+export const ALLOW_GUEST = 'allowGuest';

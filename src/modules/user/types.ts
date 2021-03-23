@@ -1,10 +1,9 @@
-import { ArrayItem, DynamicRelation } from '@/core';
+import { DynamicRelation } from '@/core';
 import { ObjectType } from 'typeorm';
-import { CaptchaActionType, CaptchaType, UserFeatures } from './constants';
+import { CaptchaActionType, CaptchaType, FeatureEnabled } from './constants';
 import { CaptchaEntity } from './entities';
 
 /** ************************************ 模块配置 ******************************** */
-export type AuthFeature = ArrayItem<typeof UserFeatures>;
 
 /**
  * 用户模块配置
@@ -15,9 +14,9 @@ export type AuthFeature = ArrayItem<typeof UserFeatures>;
 export interface UserConfig {
     hash: number; // 密码加密散列值
     jwt: Required<JwtConfig>; // jwt配置
-    enabled: Array<AuthFeature> | boolean;
+    features: typeof FeatureEnabled | boolean; // 需要开启的AUTH功能
     captcha: CaptchaConfig; // 验证码配置
-    relations: DynamicRelation[];
+    relations: DynamicRelation[]; // 与UserEntity动态关联的模型和字段
 }
 
 /**
@@ -28,21 +27,22 @@ export interface UserConfig {
  */
 export interface CustomUserConfig {
     hash?: number;
-    enabled?: Array<AuthFeature> | boolean;
+    features?: typeof FeatureEnabled | boolean;
     jwt: JwtConfig;
     captcha?: CustomCaptchaConfig;
     relations?: DynamicRelation[];
 }
+
 /**
  * 默认用户模块配置
  *
  * @export
- * @interface UserConfig
+ * @interface DefaultUserConfig
  */
 export interface DefaultUserConfig {
     hash: number;
     jwt: Pick<Required<JwtConfig>, 'token_expired' | 'refresh_token_expired'>;
-    enabled: Array<AuthFeature>;
+    features: typeof FeatureEnabled;
     captcha: DefaultCaptchaConfig;
     relations: DynamicRelation[];
 }
@@ -169,16 +169,25 @@ export interface EmailCaptchaOption extends CaptchaOption {
     template?: string; // 云厂商邮件推送模板ID
 }
 
+/**
+ * 验证码验证
+ */
+export type CaptchaValidate<T extends Record<string, any> = {}> = T & {
+    value: string;
+    code: string;
+};
+
+/**
+ * 发送短信列队任务的参数
+ *
+ * @export
+ * @interface SendCaptchaQueueJob
+ */
 export interface SendCaptchaQueueJob {
     captcha: { [key in keyof CaptchaEntity]: CaptchaEntity[key] };
     option: SmsCaptchaOption | EmailCaptchaOption;
     otherVars?: Record<string, any>;
 }
-
-export type CaptchaValidate<T extends Record<string, any> = {}> = T & {
-    value: string;
-    code: string;
-};
 
 /** ************************************ 所属资源判断 ******************************** */
 /**

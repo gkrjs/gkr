@@ -16,6 +16,14 @@ export class AccountService {
         protected userService: UserService,
     ) {}
 
+    /**
+     * 绑定或更改手机号/邮箱
+     *
+     * @param {UserEntity} user
+     * @param {CaptchaValidate<{ oldCode?: string; type: CaptchaType }>} data
+     * @return {*}
+     * @memberof AccountService
+     */
     async boundCaptcha(
         user: UserEntity,
         data: CaptchaValidate<{ oldCode?: string; type: CaptchaType }>,

@@ -43,7 +43,7 @@ export class CreateUserDto extends PickType(GuestDto, [
 }
 
 /**
- * 更新用户的请求数据验证
+ * 更新用户
  *
  * @export
  * @class UpdateUserDto
@@ -58,8 +58,22 @@ export class UpdateUserDto extends PartialDto(CreateUserDto) {
     id!: string;
 }
 
+/**
+ * 删除用户
+ *
+ * @export
+ * @class DeleteUserDto
+ * @extends {PickType(GuestDto, ['trash'])}
+ */
 export class DeleteUserDto extends PickType(GuestDto, ['trash']) {}
 
+/**
+ * 删除多个用户
+ *
+ * @export
+ * @class DeleteUserMultiDto
+ * @extends {PickType(GuestDto, ['trash', 'users'])}
+ */
 @DtoValidation({ groups: [UserDtoGroups.DELETE_MULTIE] })
 export class DeleteUserMultiDto extends PickType(GuestDto, ['trash', 'users']) {
     async transform(obj: DeleteUserMultiDto) {

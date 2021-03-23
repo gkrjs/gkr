@@ -10,11 +10,13 @@ import {
     SmsUtil,
     TimeUtil,
 } from '@/core';
+import { APP_GUARD } from '@nestjs/core';
 import { PassportModule } from '@nestjs/passport';
 import { SEND_CAPTCHA_QUEUE } from './constants';
 import * as dtoMaps from './dtos';
 import * as entities from './entities';
 import * as guardMaps from './guards';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { SendCaptchaProcessor } from './processors/send-captcha.processor';
 import * as repositories from './repositories';
 import * as serviceMaps from './services';
@@ -45,7 +47,16 @@ const guards = Object.values(guardMaps);
         subscribers: Object.values(subscribers),
     },
     imports: [PassportModule, serviceMaps.AuthService.jwtModuleFactory()],
-    providers: [...strategies, ...dtos, ...services, ...guards],
+    providers: [
+        ...strategies,
+        ...dtos,
+        ...services,
+        ...guards,
+        {
+            provide: APP_GUARD,
+            useClass: JwtAuthGuard,
+        },
+    ],
     exports: services,
 }))
 export class UserModule {}
