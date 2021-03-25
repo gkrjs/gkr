@@ -9,6 +9,7 @@ import {
     RedisUtil,
     SmsUtil,
     TimeUtil,
+    WsUtil,
 } from '@/core';
 import { APP_GUARD } from '@nestjs/core';
 import { PassportModule } from '@nestjs/passport';
@@ -20,6 +21,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { SendCaptchaProcessor } from './processors/send-captcha.processor';
 import * as repositories from './repositories';
 import * as serviceMaps from './services';
+import { MessageGateway } from './sockets/message.gateway';
 import * as strategyMaps from './strategies';
 import * as subscribers from './subscribers';
 
@@ -36,6 +38,7 @@ const guards = Object.values(guardMaps);
         SmsUtil,
         QueueUtil,
         MailerUtil,
+        WsUtil,
     ],
     queue: {
         producers: [{ name: SEND_CAPTCHA_QUEUE }],
@@ -52,6 +55,7 @@ const guards = Object.values(guardMaps);
         ...dtos,
         ...services,
         ...guards,
+        MessageGateway,
         {
             provide: APP_GUARD,
             useClass: JwtAuthGuard,

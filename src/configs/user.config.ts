@@ -54,25 +54,18 @@ export const user: ConfigRegister<CustomUserConfig> = () => ({
     captcha: {
         sms: {
             login: {
-                enabled: true,
                 template: env('SMS_LOGIN_CAPTCHA_QCLOUD', 'your-id'),
             },
             register: {
-                enabled: true,
                 template: env('SMS_REGISTER_CAPTCHA_QCLOUD', 'your-id'),
             },
             'retrieve-password': {
-                enabled: false,
                 template: env('SMS_RETRIEVEPASSWORD_CAPTCHA_QCLOUD', 'your-id'),
             },
         },
         email: {
-            register: {
-                enabled: true,
-            },
-            'retrieve-password': {
-                enabled: true,
-            },
+            register: {},
+            'retrieve-password': {},
         },
     },
     relations: [

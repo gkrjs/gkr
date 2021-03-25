@@ -33,8 +33,11 @@
     "@nestjs/passport": "^7.1.5",
     "@nestjs/platform-express": "^7.6.12",
     "@nestjs/platform-fastify": "^7.6.12",
+    "@nestjs/platform-socket.io": "^7.6.15",
+    "@nestjs/platform-ws": "^7.6.15",
     "@nestjs/swagger": "^4.7.13",
     "@nestjs/typeorm": "^7.1.5",
+    "@nestjs/websockets": "^7.6.15",
     "@sqltools/formatter": "^1.2.2",
     "@types/passport-local": "^1.0.33",
     "bcrypt": "^5.0.1",
@@ -72,6 +75,7 @@
     "typeorm": "^0.2.31",
     "uuid": "^8.3.2",
     "validator": "^13.5.2",
+    "ws": "^7.4.4",
     "yargs": "^16.2.0"
   },
   "devDependencies": {
@@ -92,6 +96,7 @@
     "@types/sanitize-html": "^1.27.1",
     "@types/supertest": "^2.0.10",
     "@types/uuid": "^8.3.0",
+    "@types/ws": "^7.4.0",
     "@typescript-eslint/eslint-plugin": "4.15.1",
     "@typescript-eslint/parser": "4.15.1",
     "cross-env": "^7.0.3",

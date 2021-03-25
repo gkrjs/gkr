@@ -9,3 +9,4 @@ export * from './supports/redis';
 export * from './supports/restful';
 export * from './supports/sms';
 export * from './supports/timer';
+export * from './supports/ws';

@@ -11,7 +11,7 @@ import { CustomUserConfig, DefaultUserConfig, UserConfig } from './types';
  * @return {*}
  */
 const getDefaultCaptcha = (type: CaptchaType) => {
-    const defaultCaptchas = { enabled: false, limit: 60, expired: 60 * 5 };
+    const defaultCaptchas = { limit: 60, expired: 60 * 5 };
     const subjects: { [key in CaptchaActionType]: string } = {
         register: '【用户注册】验证码',
         login: '【用户登录】验证码',
