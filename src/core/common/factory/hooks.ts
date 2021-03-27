@@ -28,7 +28,7 @@ export function loadPlugins(
     });
     loaded.forEach(({ use, meta }) => {
         if (meta.utils && meta.utils.length > 0) {
-            meta.utils.forEach((u) => utiler.get(u).pluginLoad(use, meta));
+            meta.utils.forEach((u) => utiler.get(u).onPluginLoad(use, meta));
         }
     });
     return loaded;
@@ -38,11 +38,16 @@ export async function created(
     params: Required<AppParams>,
     hooks: CreateOptions['hooks'],
 ) {
-    const { utiler } = params;
+    const { utiler, plugins } = params;
     if (hooks?.created) {
         await hooks.created(params);
     }
     await Promise.all(
-        utiler.all().map(async ({ value }) => value.created(params)),
+        utiler.all().map(async ({ value }) => value.onCreated(params)),
+    );
+    await Promise.all(
+        plugins.map(async ({ meta }) => {
+            if (meta.hooks?.created) await meta.hooks?.created(params);
+        }),
     );
 }

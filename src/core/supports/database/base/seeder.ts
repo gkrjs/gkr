@@ -1,3 +1,4 @@
+import { getRandomIndex } from '@/core/common';
 import { Type } from '@nestjs/common';
 import ora from 'ora';
 import { EntityManager } from 'typeorm';
@@ -10,13 +11,6 @@ import {
     SeederConstructor,
     SeederLoadParams,
 } from '../types';
-
-/**
- * 获取小于N的随机整数
- *
- * @param {number} count
- */
-const getRandomIndex = (count: number) => Math.floor(Math.random() * count);
 
 /**
  * 数据填充基类

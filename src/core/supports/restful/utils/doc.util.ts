@@ -224,7 +224,7 @@ export abstract class DocUtil extends RouteUtil {
      * @return {*}
      * @memberof DocUtil
      */
-    created({ current }: Required<AppParams>) {
+    onCreated({ current }: Required<AppParams>) {
         const docs = Object.values(this._docs)
             .map((vdoc) => [vdoc.default, ...Object.values(vdoc.routes ?? {})])
             .reduce((o, n) => [...o, ...n], [])

@@ -1,4 +1,5 @@
 import { QueryHook } from '@/core';
+import { UserEntity } from '@/modules/user/entities';
 import { Injectable } from '@nestjs/common';
 import { omit } from 'lodash';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
@@ -57,8 +58,8 @@ export class PostService {
         return item;
     }
 
-    async create(data: CreatePostDto) {
-        const item = await this.postRepository.save(data);
+    async create(user: UserEntity, data: CreatePostDto) {
+        const item = await this.postRepository.save({ ...data, author: user });
         return this.findOne(item.id);
     }
 

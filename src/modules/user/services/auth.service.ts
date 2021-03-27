@@ -96,7 +96,7 @@ export class AuthService {
     }
 
     /**
-     * 注销登录(即把access_token列入Redis黑名单)
+     * 注销登录
      *
      * @param {Request} req
      * @return {*}

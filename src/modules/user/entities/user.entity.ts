@@ -6,11 +6,13 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
+    ManyToMany,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 import { AccessTokenEntity } from './access-token.entity';
+import { MessageEntity } from './message.entity';
 
 /**
  * 用户模型
@@ -76,6 +78,14 @@ export class UserEntity extends BaseEntity {
         cascade: true,
     })
     accessTokens!: AccessTokenEntity[];
+
+    @OneToMany(() => MessageEntity, (message) => message.sender, {
+        cascade: true,
+    })
+    sends!: MessageEntity[];
+
+    @ManyToMany((type) => MessageEntity, (message) => message.receivers)
+    messages!: MessageEntity[];
 
     /**
      * 是否位于回收站

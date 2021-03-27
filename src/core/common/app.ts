@@ -1,4 +1,5 @@
 import { INestApplication } from '@nestjs/common';
+import { FastifyAdapter } from '@nestjs/platform-fastify';
 import { useContainer } from 'typeorm';
 import { CommandModule } from 'yargs';
 import { Configure } from '../configure/configure';
@@ -10,7 +11,13 @@ import {
     getCommands,
     loadPlugins,
 } from './factory';
-import { AppParams, CreateOptions, Creator, CreatorData } from './types';
+import {
+    AppParams,
+    CreateOptions,
+    Creator,
+    CreatorData,
+    PluginModuleType,
+} from './types';
 import { Utiler } from './utiler';
 
 /**
@@ -50,6 +57,16 @@ export class App {
      */
     protected static _utiler: Utiler;
 
+    protected static _plugins: Array<PluginModuleType> = [];
+
+    /**
+     * 命令列表
+     *
+     * @protected
+     * @static
+     * @type {Array<CommandModule<any, any>>}
+     * @memberof App
+     */
     protected static _commands: Array<CommandModule<any, any>> = [];
 
     /**
@@ -92,6 +109,10 @@ export class App {
         return this._commands;
     }
 
+    static get plugins() {
+        return this._plugins;
+    }
+
     /**
      * 获取当前app实例
      *
@@ -115,33 +136,41 @@ export class App {
         const { configs, meta, factory, hooks, utils, plugins = [] } = options;
         try {
             this.config(configs);
-            const params: AppParams = {
-                configure: this._configure,
-                utiler: this._utiler,
-            };
             if (utils && utils.length > 0) this.utiler.add(...utils);
-            if (hooks?.inited) await hooks.inited(params);
-            const pluginsLoaded = loadPlugins(plugins, params, hooks);
-            const BootModule = createBootModule(params, meta, pluginsLoaded);
+            if (hooks?.inited) await hooks.inited(this.getParams());
+            this._plugins = loadPlugins(plugins, this.getParams(), hooks);
+            const BootModule = createBootModule(
+                this.getParams(),
+                meta,
+                this._plugins,
+            );
             this.current = await factory({
                 configure: this._configure,
                 BootModule,
             });
-            const appParams = {
-                ...params,
-                current: this.current,
-            };
             this.current.enableShutdownHooks();
-            await this.current.init();
             useContainer(this.current.select(BootModule), {
                 fallbackOnErrors: true,
             });
-            created(appParams, hooks);
-            this._commands = getCommands(appParams, hooks);
-            return { commands: this._commands, hooks, ...appParams };
+            created(this.getParams(), hooks);
+            if (this.current.getHttpAdapter() instanceof FastifyAdapter) {
+                await this.current.init();
+            }
+
+            this._commands = getCommands(this.getParams(), hooks, options.echo);
+            return { commands: this._commands, hooks, ...this.getParams() };
         } catch (error) {
             throw new Error(error);
         }
+    }
+
+    protected static getParams(): AppParams {
+        return {
+            configure: this._configure,
+            utiler: this._utiler,
+            plugins: this._plugins,
+            current: this.current ?? undefined,
+        };
     }
 }
 

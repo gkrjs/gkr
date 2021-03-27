@@ -10,7 +10,6 @@ import { DTO_VALIDATION_OPTIONS } from '../constants';
 @Injectable()
 export class AppPipe extends ValidationPipe {
     async transform(value: any, metadata: ArgumentMetadata) {
-        if (!value) return null;
         const { metatype, type } = metadata;
         // 获取要验证的dto类
         const dto = metatype as any;
@@ -18,7 +17,7 @@ export class AppPipe extends ValidationPipe {
         const options = Reflect.getMetadata(DTO_VALIDATION_OPTIONS, dto) || {};
         // 把当前已设置的选项解构到备份对象
         const originOptions = { ...this.validatorOptions };
-        // 把当前已设置的class-transform选项结构到备份对象
+        // 把当前已设置的class-transform选项解构到备份对象
         const originTransform = { ...this.transformOptions };
         // 把自定义的class-transform和type选项解构出来
         const {
@@ -49,6 +48,7 @@ export class AppPipe extends ValidationPipe {
                 arrayMerge: (_d, s, _o) => s,
             },
         );
+
         // 验证并transform dto对象
         let result = await super.transform(value, metadata);
         // 如果dto类的原型链中存在transform方法,则返回调用进一步transform之后的结果

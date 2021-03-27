@@ -33,8 +33,7 @@ export class ApiUtil extends DocUtil {
         };
     }
 
-    listend(params: Required<AppParams>) {
+    onStarted(params: Required<AppParams>) {
         echoApi(params, this);
-        return true;
     }
 }

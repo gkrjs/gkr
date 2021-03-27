@@ -6,7 +6,7 @@ export class WsUtil extends BaseUtil<any> {
 
     protected create(config: any) {}
 
-    created({ current }: Required<AppParams>) {
+    onCreated({ current }: Required<AppParams>) {
         current.useWebSocketAdapter(new WsAdapter(current));
     }
 }

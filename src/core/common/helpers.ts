@@ -8,6 +8,7 @@ import { ObjectLiteral } from 'typeorm';
 import { env } from '../configure/env';
 import { BaseConfig } from '../configure/types';
 import { App } from './app';
+import { RunMode } from './constants';
 import { PaginateDto } from './types';
 
 /** ****************************************** Base **************************************** */
@@ -23,6 +24,14 @@ export function tNumber(value?: string | number): number | undefined {
     if (typeof value === 'string') return Number(value);
     return value;
 }
+
+/**
+ * 获取小于N的随机整数
+ *
+ * @param {number} count
+ */
+export const getRandomIndex = (count: number) =>
+    Math.floor(Math.random() * count);
 
 /**
  * 用于请求验证中的boolean数据转义
@@ -176,6 +185,10 @@ export function PartialDto<T>(classRef: Type<T>): Type<Partial<T>> {
  */
 export function isInSource() {
     return env('RUN_SOURCE', (v) => JSON.parse(v), false);
+}
+
+export function isPreview() {
+    return env<RunMode>('RUN_MODE', RunMode.NORMAL) === RunMode.PREVIEW;
 }
 
 /**

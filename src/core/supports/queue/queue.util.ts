@@ -59,7 +59,7 @@ export class QueueUtil extends ConnectionUtil<QueueConfig, QueueOption> {
         return item ? item.meta : {};
     }
 
-    pluginLoad(
+    onPluginLoad(
         pluginModule: Type,
         pluginMeta: PluginModuleMeta<QueuePluginOption>,
     ) {

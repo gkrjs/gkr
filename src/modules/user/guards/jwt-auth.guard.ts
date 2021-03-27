@@ -1,3 +1,4 @@
+import { isPreview, TimeUtil } from '@/core';
 import {
     ExecutionContext,
     Injectable,
@@ -7,6 +8,7 @@ import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { ExtractJwt } from 'passport-jwt';
 import { ALLOW_GUEST } from '../constants';
+import { UserRepository } from '../repositories';
 import { TokenService } from '../services';
 
 /**
@@ -21,7 +23,9 @@ import { TokenService } from '../services';
 export class JwtAuthGuard extends AuthGuard('jwt') {
     constructor(
         private reflector: Reflector,
+        private readonly userRepository: UserRepository,
         private readonly tokenService: TokenService,
+        private readonly timeUtil: TimeUtil,
     ) {
         super();
     }
@@ -45,6 +49,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         // 从请求头中获取token
         // 如果请求头不含有authorization字段则认证失败
         const requestToken = ExtractJwt.fromAuthHeaderAsBearerToken()(request);
+        if (isPreview()) return this.preview(context, requestToken);
         if (!requestToken) return false;
         // 判断token是否存在,如果不存在则认证失败
         const accessToken = await this.tokenService.checkAccessToken(
@@ -69,6 +74,29 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
             // 刷新失败则再次抛出认证失败的异常
             return super.canActivate(context) as boolean;
         }
+    }
+
+    protected async preview(
+        context: ExecutionContext,
+        requestToken: string | null,
+    ) {
+        const request = this.getRequest(context);
+        const tokenStr = requestToken ?? 'demo';
+        let token = await this.tokenService.checkAccessToken(tokenStr);
+
+        if (!token) {
+            const user = await this.userRepository.findOneOrFail({
+                relations: ['accessTokens'],
+            });
+            const { accessToken } = await this.tokenService.generateAccessToken(
+                user,
+                this.timeUtil.getTime(),
+            );
+            token = accessToken;
+        }
+
+        request.headers.authorization = `Bearer ${token.value}`;
+        return super.canActivate(context) as boolean;
     }
 
     /**

@@ -61,7 +61,7 @@ export class RedisUtil extends ConnectionUtil<RedisConfig, RedisOption> {
         return this.redis.getClients();
     }
 
-    getGlobalMeta(): ModuleMetadata {
+    globalMeta(): ModuleMetadata {
         return {
             imports: [RedisModule.register(this.options)],
             providers: [

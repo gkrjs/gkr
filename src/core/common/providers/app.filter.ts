@@ -10,13 +10,13 @@ import { EntityNotFoundError } from 'typeorm/error/EntityNotFoundError';
 import { ClassType } from '../types';
 
 @Catch()
-export class AppFilter extends BaseExceptionFilter {
+export class AppFilter<T extends any = Error> extends BaseExceptionFilter<T> {
     protected resExceptions: Array<
         { class: ClassType<Error>; status?: number } | ClassType<Error>
     > = [{ class: EntityNotFoundError, status: HttpStatus.NOT_FOUND }];
 
     // eslint-disable-next-line consistent-return
-    catch(exception: Error, host: ArgumentsHost) {
+    catch(exception: T, host: ArgumentsHost) {
         const applicationRef =
             this.applicationRef ||
             (this.httpAdapterHost && this.httpAdapterHost.httpAdapter)!;

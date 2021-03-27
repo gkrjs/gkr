@@ -47,7 +47,7 @@ export abstract class BaseUtil<CT> {
      * @return {*}
      * @memberof BaseUtil
      */
-    isCreated() {
+    created() {
         return this._created;
     }
 
@@ -84,16 +84,14 @@ export abstract class BaseUtil<CT> {
         return {};
     }
 
-    pluginLoad<T>(pluginModule: Type, pluginMeta: PluginModuleMeta<T>) {}
+    onPluginLoad<T>(pluginModule: Type, pluginMeta: PluginModuleMeta<T>) {}
 
-    created(params: Required<AppParams>): Promise<void> | void {}
+    onCreated(params: Required<AppParams>): Promise<void> | void {}
+
+    onStarted(params: Required<AppParams>): Promise<void> | void {}
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    closed(): Promise<void> | void {}
-
-    listend(params: Required<AppParams>): boolean {
-        return false;
-    }
+    onClosed(params: Required<AppParams>): Promise<void> | void {}
 
     commands(): Array<CommandItem<any, any>> {
         return [];

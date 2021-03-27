@@ -52,7 +52,7 @@ export class DbUtil extends BaseDbUtil {
      *
      * @memberof DbUtil
      */
-    async closed() {
+    async onClosed() {
         await Promise.allSettled(
             this.getNestOptions().map(async (option) => {
                 try {
@@ -81,7 +81,7 @@ export class DbUtil extends BaseDbUtil {
      * @param {PluginModuleMeta<DbPluginOption>} pluginMeta
      * @memberof DbUtil
      */
-    pluginLoad(
+    onPluginLoad(
         pluginModule: Type,
         pluginMeta: PluginModuleMeta<DbPluginOption>,
     ) {

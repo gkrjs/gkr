@@ -84,10 +84,13 @@ export type CUtilOptionType<T extends Record<string, any>> = T & {
     name: string;
 };
 
-export type AppParams = {
+export type AppParams<
+    T extends INestApplication | undefined = INestApplication
+> = {
     configure: Configure;
     utiler: Utiler;
-    current?: INestApplication;
+    plugins: PluginModuleType[];
+    current: T;
 };
 
 /**
@@ -111,6 +114,7 @@ export interface CreateOptions {
     configs: ConfigRegCollection<Record<string, any>>;
     plugins: Type<any>[];
     factory: AppFactory;
+    echo?: boolean;
     utils?: Array<ClassType<BaseUtil<any>>>;
     hooks?: {
         inited?: (params: AppParams) => void | Promise<void>;
@@ -120,7 +124,8 @@ export interface CreateOptions {
         created?: (
             params: Required<AppParams>,
         ) => INestApplication | Promise<INestApplication>;
-        listend?: (params: Required<AppParams>) => boolean;
+        started?: (params: Required<AppParams>) => Promise<void>;
+        // listend?: (params: Required<AppParams>) => Promise<void>;
         closed?: (params: Required<AppParams>) => Promise<void>;
     };
     meta?: (params: AppParams) => ModuleMetadata;
@@ -153,6 +158,10 @@ export interface AppFactory {
     }): Promise<INestApplication>;
 }
 
+export interface PluginModuleType {
+    use: Type<any>;
+    meta: PluginModuleMeta;
+}
 /**
  * 插件模块的Meta配置
  */
@@ -160,6 +169,8 @@ export type PluginModuleMeta<
     T extends Record<string, any> = Record<string, any>
 > = ModuleMetadata & {
     utils?: Array<ClassType<BaseUtil<any>>>;
+    hooks?: Omit<NonNullable<CreateOptions['hooks']>, 'inited' | 'pluginLoad'>;
+    commands?: CreateOptions['commands'];
 } & T;
 
 export type CommandItem<T = {}, U = {}> = (

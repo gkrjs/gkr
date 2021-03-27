@@ -5,6 +5,7 @@
         "dist",
         "test",
         "scripts",
+        "examples",
         "**/*spec.ts",
         "**.js"
     ]

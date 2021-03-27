@@ -49,6 +49,12 @@ export class TokenService {
         return null;
     }
 
+    async verifyAccessToken(token: AccessTokenEntity) {
+        const result = jwt.verify(token.value, this.config.secret);
+        if (!result) return false;
+        return token.user;
+    }
+
     /**
      * 根据荷载签出新的AccessToken并存入数据库
      * 且自动生成新的Refresh也存入数据库

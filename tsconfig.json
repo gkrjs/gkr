@@ -36,6 +36,7 @@
         "test/**/*.ts",
         "typings/**/*.d.ts",
         "scripts",
+        "examples",
         "**.js"
     ]
 }

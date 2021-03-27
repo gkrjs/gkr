@@ -16,12 +16,12 @@ import { PassportModule } from '@nestjs/passport';
 import { SEND_CAPTCHA_QUEUE } from './constants';
 import * as dtoMaps from './dtos';
 import * as entities from './entities';
+import * as geteways from './geteways';
 import * as guardMaps from './guards';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { SendCaptchaProcessor } from './processors/send-captcha.processor';
 import * as repositories from './repositories';
 import * as serviceMaps from './services';
-import { MessageGateway } from './sockets/message.gateway';
 import * as strategyMaps from './strategies';
 import * as subscribers from './subscribers';
 
@@ -29,7 +29,17 @@ const strategies = Object.values(strategyMaps);
 const services = Object.values(serviceMaps);
 const dtos = Object.values(dtoMaps);
 const guards = Object.values(guardMaps);
+
 @PluginModule<DbPluginOption & QueuePluginOption>(() => ({
+    hooks: {
+        started: async ({ utiler }) => {
+            const redis = utiler.get(RedisUtil).getClient();
+            const tokens = await redis.smembers('online');
+            if (tokens && tokens.length > 0) {
+                await redis.srem('online', ...tokens);
+            }
+        },
+    },
     utils: [
         TimeUtil,
         DbUtil,
@@ -55,7 +65,7 @@ const guards = Object.values(guardMaps);
         ...dtos,
         ...services,
         ...guards,
-        MessageGateway,
+        geteways.WSGateway,
         {
             provide: APP_GUARD,
             useClass: JwtAuthGuard,

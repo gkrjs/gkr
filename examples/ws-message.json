@@ -1,0 +1,25 @@
+{
+    "online": {
+        "event": "online",
+        "data": { "token": "access token" }
+    },
+    "message": {
+        "event": "message",
+        "data": {
+            "token": "access token",
+            "users": ["... user ids"],
+            "title": "test",
+            "body": "string",
+            "type": "string"
+        }
+    },
+    "alert-message": {
+        "event": "message",
+        "data": {
+            "token": "token string",
+            "receivers": ["... user ids"],
+            "body": "string",
+            "type": "string"
+        }
+    }
+}

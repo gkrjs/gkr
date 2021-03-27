@@ -37,18 +37,25 @@ export function buildCommands(commands: CommandModule<any, any>[]) {
  * @export
  * @param {Required<AppParams>} params
  * @param {CreateOptions['hooks']} hooks
+ * @param {boolean} [echo]
  * @return {*}  {CommandModule<any, any>[]}
  */
 export function getCommands(
     params: Required<AppParams>,
     hooks: CreateOptions['hooks'],
+    echo?: boolean,
 ): CommandModule<any, any>[] {
-    const { current, utiler } = params;
-    const CommandItems: Array<CommandItem<any, any>> = utiler
+    const { current, utiler, plugins } = params;
+    const UtilCommands: Array<CommandItem<any, any>> = utiler
         .all()
         .map(({ value }) => value.commands())
         .reduce((o, n) => [...o, ...n], []);
-    const commands = CommandItems.map((item) => {
+    const pluginCommands: Array<
+        CommandItem<any, any>
+    > = plugins
+        .map(({ meta }) => (meta.commands ? meta.commands() : []))
+        .reduce((o, n) => [...o, ...n], []);
+    const commands = [...UtilCommands, ...pluginCommands].map((item) => {
         const command = item(params, hooks);
         return {
             ...command,
@@ -60,12 +67,21 @@ export function getCommands(
                 await current.close();
                 if (hooks?.closed) await hooks.closed(params);
                 await Promise.all(
-                    utiler.all().map(async ({ value }) => value.closed()),
+                    utiler
+                        .all()
+                        .map(async ({ value }) => value.onClosed(params)),
+                );
+
+                await Promise.all(
+                    plugins.map(
+                        async ({ meta }) =>
+                            meta.hooks?.closed && meta.hooks.closed(params),
+                    ),
                 );
             },
         };
     });
-    commands.push(getRunCommand(params, hooks));
+    commands.push(getRunCommand(params, hooks, echo));
     return commands;
 }
 
@@ -74,13 +90,15 @@ export function getCommands(
  *
  * @param {Required<AppParams>} params
  * @param {CreateOptions['hooks']} hooks
+ * @param {boolean} [echo]
  * @return {*}
  */
 function getRunCommand(
     params: Required<AppParams>,
     hooks: CreateOptions['hooks'],
+    echo?: boolean,
 ) {
-    const { configure, current, utiler } = params;
+    const { configure, current, utiler, plugins } = params;
     return {
         command: ['start', '$0'],
         describe: 'Start app',
@@ -93,17 +111,19 @@ function getRunCommand(
             if (!appUrl) {
                 appUrl = `${https ? 'https' : 'http'}://${host!}:${port}`;
             }
-            await current.listen(port, '0.0.0.0', () => {
+            await current.listen(port, '0.0.0.0', async () => {
                 console.log();
                 console.log('Server has started:');
-                let customListend = false;
-                if (hooks?.listend) {
-                    if (hooks.listend(params)) customListend = true;
-                }
+                if (hooks?.started) await hooks.started(params);
                 for (const { value } of utiler.all()) {
-                    if (value.listend(params)) customListend = true;
+                    await value.onStarted(params);
                 }
-                if (!customListend) {
+                for (const { meta } of plugins) {
+                    if (meta.hooks?.started) {
+                        await meta.hooks.started(params);
+                    }
+                }
+                if ((typeof echo === 'boolean' && echo) || echo === undefined) {
                     console.log(`- API: ${chalk.green.underline(appUrl!)}`);
                 }
             });

@@ -1,4 +1,6 @@
 import { Depends, ParseUUIDEntityPipe } from '@/core';
+import { ReqUser } from '@/modules/user';
+import { UserEntity } from '@/modules/user/entities';
 import {
     Body,
     Controller,
@@ -67,10 +69,11 @@ export class PostController {
     @Post()
     @SerializeOptions({ groups: ['post-item'] })
     async store(
+        @ReqUser() user: UserEntity,
         @Body()
         data: CreatePostDto,
     ) {
-        return this.postService.create(data);
+        return this.postService.create(user, data);
     }
 
     @Patch()

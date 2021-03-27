@@ -13,6 +13,7 @@ const creator = createApp({
     configs: { ...configs, api },
     utils: [ApiUtil],
     plugins: [UserModule, ContentModule],
+    echo: false,
     factory: async ({ BootModule }) => {
         const instance = await NestFactory.create<NestFastifyApplication>(
             BootModule,

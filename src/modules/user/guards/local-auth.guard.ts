@@ -20,6 +20,7 @@ export class LocalAuthGuard extends AuthGuard('local') {
     async canActivate(context: ExecutionContext) {
         const request = context.switchToHttp().getRequest();
         try {
+            console.log(request.headers['user-agent']);
             await validateOrReject(plainToClass(CredentialDto, request.body), {
                 validationError: { target: false },
             });
