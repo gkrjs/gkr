@@ -69,7 +69,7 @@ export function getUserConfig<T>(key?: string): T {
         custom.features = FeatureEnabled;
     }
     const userConfig = merge(defaultConfig, config<UserConfig>('user') ?? {}, {
-        arrayMerge: (_d, s, _o) => Array.from(new Set(s)),
+        arrayMerge: (_d, s, _o) => Array.from(new Set([..._d, ...s])),
     }) as UserConfig;
     return key ? get(userConfig, key) : userConfig;
 }
