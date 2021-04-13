@@ -19,10 +19,11 @@ const creator = createApp({
             BootModule,
             new FastifyAdapter(),
             {
-                cors: true,
+                // cors: true,
                 logger: ['error', 'warn'],
             },
         );
+        instance.enableCors()
         return instance;
     },
 });
