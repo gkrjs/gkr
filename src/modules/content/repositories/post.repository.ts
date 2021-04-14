@@ -21,6 +21,7 @@ export class PostRepository extends Repository<PostEntity> {
         return this.createQueryBuilder('post')
             .withDeleted()
             .leftJoinAndSelect('post.categories', 'categories')
+            .leftJoinAndSelect('post.author','author')
             .addSelect((subQuery) => {
                 return subQuery
                     .select('COUNT(c.id)', 'count')
