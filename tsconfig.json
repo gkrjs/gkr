@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "strict": true,
-        "target": "es2020",
+        "target": "ESNext",
         "module": "commonjs",
         "moduleResolution": "node",
         "declaration": true,
